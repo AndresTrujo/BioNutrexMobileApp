@@ -1,0 +1,3 @@
+[submodule "biocommerce"]
+	path = biocommerce
+	url = https://github.com/AndresTrujo/BioEcommerce.git

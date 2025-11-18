@@ -9,6 +9,7 @@ import { Video } from 'expo-av';
 import { useToast } from '../components/ToastProvider';
 import { formatCurrencyMXN, amountColor } from '../utils/currency';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ProductDetailScreen({ route }) {
   const { productId } = route.params;
@@ -24,6 +25,14 @@ export default function ProductDetailScreen({ route }) {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => navigation.goBack()}
+        accessibilityRole="button"
+        accessibilityLabel="Regresar"
+      >
+        <Ionicons name="arrow-back" size={22} color={colors.navy} />
+      </TouchableOpacity>
       {product.image && (
         <SmartImage uri={product.image} style={styles.image} alt={product.name} />
       )}
@@ -60,6 +69,7 @@ export default function ProductDetailScreen({ route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.white, padding: 16 },
+  backBtn: { position: 'absolute', left: 12, top: 12, zIndex: 20, padding: 6, backgroundColor: 'transparent', borderRadius: 20 },
   image: { width: '100%', height: 200, borderRadius: 8, marginBottom: 12 },
   name: { color: colors.black, fontSize: 20, fontWeight: '700' },
   brand: { color: colors.gray, marginTop: 4 },

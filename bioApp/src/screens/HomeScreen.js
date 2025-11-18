@@ -5,15 +5,27 @@ import { colors } from '../theme/colors';
 import ProductCard from '../components/ProductCard';
 import { CATEGORY_OPTIONS } from '../data/categories';
 import ProductCarousel from '../components/ProductCarousel';
+import FilterBar from '../components/FilterBar';
 
 export default function HomeScreen({ navigation }) {
   const products = useSelector((state) => state.products.list);
   const featured = useMemo(() => products.filter((p) => p.featured), [products]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const filteredFeatured = useMemo(() => {
-    if (selectedCategory === 'all') return featured;
-    return featured.filter((p) => p.category === selectedCategory);
-  }, [featured, selectedCategory]);
+
+  // Visible list for the bottom section:
+  // - if a specific category is selected: return the first 6 products of that category
+  // - if 'all' is selected: return 6 random products from the whole products list
+  const visibleProducts = useMemo(() => {
+    if (selectedCategory === 'all') {
+      const pool = products && products.length ? [...products] : [];
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, 6);
+    }
+    return products.filter((p) => p.category === selectedCategory).slice(0, 6);
+  }, [products, selectedCategory]);
 
   return (
     <FlatList
@@ -41,7 +53,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
       )}
-      data={filteredFeatured}
+      data={visibleProducts}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <ProductCard product={item} onPress={() => navigation.navigate('ShopStack', { screen: 'ProductDetail', params: { productId: item.id } })} />

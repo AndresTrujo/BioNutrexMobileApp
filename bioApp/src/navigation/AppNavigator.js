@@ -27,9 +27,9 @@ const navTheme = {
 
 function ShopStack() {
   return (
-    <Stack.Navigator screenOptions={{ animation: 'slide_from_right' }}>
-      <Stack.Screen name="Shop" component={ShopScreen} options={{ title: 'Tienda' }} />
-      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Producto' }} />
+    <Stack.Navigator screenOptions={{ animation: 'slide_from_right', headerShown: false }}>
+      <Stack.Screen name="Shop" component={ShopScreen} />
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
     </Stack.Navigator>
   );
 }

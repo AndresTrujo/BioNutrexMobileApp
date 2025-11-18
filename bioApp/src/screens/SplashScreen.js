@@ -27,19 +27,6 @@ export default function SplashScreen({ onDone }) {
     const controller = new AbortController();
     const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
 
-    function normalizeImageUrl(url) {
-      if (!url) return null;
-      try {
-        const parsed = new URL(url);
-        if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
-          return url.replace(parsed.origin, API_BASE);
-        }
-        return url;
-      } catch (e) {
-        return url;
-      }
-    }
-
     async function fetchProducts() {
       try {
         const res = await fetch(`${API_BASE}/api/products/`, { signal: controller.signal });
@@ -50,7 +37,7 @@ export default function SplashScreen({ onDone }) {
           name: it.name ?? it.PROD_NOMBRE ?? it.nombre ?? 'Producto',
           price: Number.parseFloat(it.price ?? it.PROD_PRECIO_PUB ?? it.precio ?? 0) || 0,
           category: it.category ?? it.PROD_CATEGORIA ?? null,
-          image: normalizeImageUrl(it.image ?? it.PROD_IMAGEN ?? it.imagen ?? null),
+          image: it.image ?? it.PROD_IMAGEN ?? it.imagen ?? null,
           // preserve backend 'featured' flag if present; default to false
           featured: Boolean(it.featured) || false,
           ...it,

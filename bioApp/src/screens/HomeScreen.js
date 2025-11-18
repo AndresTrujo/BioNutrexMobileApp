@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useSelector } from 'react-redux';
 import { colors } from '../theme/colors';
 import ProductCard from '../components/ProductCard';
-import { CATEGORIES } from '../data/products';
+import { CATEGORY_OPTIONS } from '../data/categories';
 import ProductCarousel from '../components/ProductCarousel';
 
 export default function HomeScreen({ navigation }) {
@@ -32,7 +32,7 @@ export default function HomeScreen({ navigation }) {
               <TouchableOpacity key={'all'} style={[styles.categoryPill, selectedCategory === 'all' && styles.categoryPillActive]} onPress={() => setSelectedCategory('all')}>
                 <Text style={[styles.categoryText, selectedCategory === 'all' && styles.categoryTextActive]}>Todos</Text>
               </TouchableOpacity>
-              {CATEGORIES.map((c) => (
+              {CATEGORY_OPTIONS.map((c) => (
                 <TouchableOpacity key={c.id} style={[styles.categoryPill, selectedCategory === c.id && styles.categoryPillActive]} onPress={() => setSelectedCategory(c.id)}>
                   <Text style={[styles.categoryText, selectedCategory === c.id && styles.categoryTextActive]}>{c.name}</Text>
                 </TouchableOpacity>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginRight: 8,
     marginBottom: 8,
-    },
+  },
   categoryPillActive: { backgroundColor: colors.navy },
   categoryText: { color: colors.navy },
   categoryTextActive: { color: colors.white },

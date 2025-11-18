@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { colors } from '../theme/colors';
 import { removeFromCart, setQuantity, setShipping, clearCart } from '../store/cartSlice';
 import { addOrder } from '../store/authSlice';
-import { PRODUCTS } from '../data/products';
 import Constants from 'expo-constants';
 import { usePayment } from '../services/payment';
 import SmartImage from '../components/SmartImage';
@@ -20,12 +19,17 @@ export default function CartScreen() {
   const navigation = useNavigation();
   const toast = useToast();
 
+  const products = useSelector((s) => s.products.list);
+
   const enrichedItems = useMemo(() =>
-    items.map((it) => ({ ...it, product: PRODUCTS.find((p) => p.id === it.productId) })),
-    [items]
+    items.map((it) => ({
+      ...it,
+      product: products.find((p) => p.id === it.productId) || { id: it.productId, name: 'Producto', price: 0, image: null, brand: '' },
+    })),
+    [items, products]
   );
 
-  const subtotal = useMemo(() => enrichedItems.reduce((acc, it) => acc + it.product.price * it.quantity, 0), [enrichedItems]);
+  const subtotal = useMemo(() => enrichedItems.reduce((acc, it) => acc + (it.product?.price || 0) * it.quantity, 0), [enrichedItems]);
   const shippingCost = useMemo(() => {
     if (shipping === 'express') return 10;
     if (shipping === 'standard') return subtotal >= 60 ? 0 : 5;

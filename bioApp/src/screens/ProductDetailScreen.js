@@ -28,20 +28,7 @@ export default function ProductDetailScreen({ route }) {
         <SmartImage uri={product.image} style={styles.image} alt={product.name} />
       )}
       <Text style={styles.name}>{product.name}</Text>
-      <Text style={styles.brand}>{product.brand}</Text>
       <Text style={[styles.price, { color: amountColor(product.price) }]}>{formatCurrencyMXN(product.price)}</Text>
-      <Text style={styles.rating}>★ {product.rating.toFixed(1)}</Text>
-      <Text style={styles.desc}>{product.description}</Text>
-      {product.video && (
-        <View style={{ marginTop: 12 }}>
-          <Video
-            source={{ uri: product.video }}
-            style={{ width: '100%', height: 200, borderRadius: 8 }}
-            useNativeControls
-            resizeMode="cover"
-          />
-        </View>
-      )}
       <View style={styles.row}>
         <TouchableOpacity style={styles.btnPrimary} onPress={() => { dispatch(addToCart({ productId })); toast.show({ type: 'success', icon: 'basket', message: 'Agregado al carrito' }); }}>
           <Text style={styles.btnPrimaryText}>Añadir al carrito</Text>

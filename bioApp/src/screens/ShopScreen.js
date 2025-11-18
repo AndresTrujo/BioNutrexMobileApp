@@ -4,65 +4,28 @@ import { useSelector } from 'react-redux';
 import SearchBar from '../components/SearchBar';
 import FilterBar from '../components/FilterBar';
 import ProductCard from '../components/ProductCard';
-import { CATEGORIES, BRANDS } from '../data/products';
+import { CATEGORY_OPTIONS } from '../data/categories';
+import { PRICE_LOW, PRICE_HIGH, PRICE_MEDIUM } from '../data/priceRanges';
 import { colors } from '../theme/colors';
 
 export default function ShopScreen({ navigation }) {
   const localProducts = useSelector((state) => state.products.list);
-  const [remoteProducts, setRemoteProducts] = useState([]);
-  const [loadingRemote, setLoadingRemote] = useState(false);
-  const [remoteError, setRemoteError] = useState(null);
-
-  // Use 'localhost' on iOS simulator / web, use 10.0.2.2 for Android emulator
-  const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
 
-  // Fetch remote products once
-  useEffect(() => {
-    let mounted = true;
-    const controller = new AbortController();
-    async function fetchProducts() {
-      setLoadingRemote(true);
-      setRemoteError(null);
-      try {
-        const res = await fetch(`${API_BASE}/api/products/`, { signal: controller.signal });
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-        const data = await res.json();
-        const mapped = (Array.isArray(data) ? data : data.results || []).map((it) => ({
-          id: String(it.id ?? it.ID_PRODUCTO ?? it.pk ?? it.pk_id ?? ''),
-          name: it.name ?? it.PROD_NOMBRE ?? it.nombre ?? 'Producto',
-          price: parseFloat(it.price ?? it.PROD_PRECIO_PUB ?? it.precio ?? 0) || 0,
-          category: it.category ?? it.PROD_CATEGORIA ?? null,
-          ...it,
-        }));
-        if (mounted) setRemoteProducts(mapped);
-      } catch (err) {
-        if (mounted) setRemoteError(err.message || 'Fetch error');
-      } finally {
-        if (mounted) setLoadingRemote(false);
-      }
-    }
-    fetchProducts();
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
-  }, [API_BASE]);
-
   const filtered = useMemo(() => {
-    const source = remoteProducts.length ? remoteProducts : localProducts;
+    const source = localProducts;
     return source.filter((p) => {
       const matchQuery = p.name.toLowerCase().includes(query.toLowerCase())
       const matchCat = selectedCategory === 'all' ? true : p.category === selectedCategory;
       let matchPrice = true;
-      if (priceRange === 'lt30') matchPrice = p.price < 30;
-      else if (priceRange === '30to60') matchPrice = p.price >= 30 && p.price <= 60;
-      else if (priceRange === 'gt60') matchPrice = p.price > 60;
+      if (priceRange === PRICE_LOW) matchPrice = p.price < 500;
+      else if (priceRange === PRICE_MEDIUM) matchPrice = p.price >= 500 && p.price <= 800;
+      else if (priceRange === PRICE_HIGH) matchPrice = p.price > 800;
       return matchQuery && matchCat && matchPrice;
     });
-  }, [localProducts, remoteProducts, query, selectedCategory, priceRange]);
+  }, [localProducts, query, selectedCategory, priceRange]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const animHeight = useRef(new Animated.Value(0)).current;
   const contentHeight = useRef(0);
@@ -78,8 +41,7 @@ export default function ShopScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <SearchBar value={query} onChange={setQuery} />
-      {loadingRemote && <Text style={{ paddingHorizontal: 12, color: colors.navy }}>Cargando productos...</Text>}
-      {remoteError && <Text style={{ paddingHorizontal: 12, color: 'red' }}>Error: {remoteError}</Text>}
+
       <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
         <TouchableOpacity
           onPress={() => setFiltersOpen((v) => !v)}
@@ -102,7 +64,7 @@ export default function ShopScreen({ navigation }) {
           }}
         >
           <FilterBar
-            categories={CATEGORIES}
+            categories={CATEGORY_OPTIONS}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             priceRange={priceRange}
@@ -110,13 +72,19 @@ export default function ShopScreen({ navigation }) {
           />
         </View>
       </Animated.View>
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ProductCard variant="fixed" product={item} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })} />
-        )}
-      />
+      {filtered.length === 0 ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Text style={{ color: colors.gray, fontSize: 16, textAlign: 'center' }}>No encontramos productos con esas caracteristicas :(</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ProductCard variant="fixed" product={item} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })} />
+          )}
+        />
+      )}
     </View>
   );
 }

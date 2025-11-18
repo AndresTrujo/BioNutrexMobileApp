@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from '
 import SmartImage from './SmartImage';
 import { formatCurrencyMXN, amountColor } from '../utils/currency';
 
-export default function ProductCarousel({ products = [], onPressItem }) {
+
+export default function ProductCarousel({ products, onPressItem }) {
   const { width } = Dimensions.get('window');
   const spacing = 12;
   const cardWidth = Math.max(280, Math.min(420, Math.floor(width * 0.78)));

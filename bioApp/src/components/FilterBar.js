@@ -1,14 +1,10 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { colors } from '../theme/colors';
+import { PRICE_RANGES } from '../data/priceRanges';
 
 export default function FilterBar({ categories, selectedCategory, setSelectedCategory, priceRange, setPriceRange }) {
-  const priceRanges = [
-    { id: 'all', label: 'Todos' },
-    { id: 'lt30', label: '< $30' },
-    { id: '30to60', label: '$30-$60' },
-    { id: 'gt60', label: '> $60' },
-  ];
+  const priceRanges = PRICE_RANGES;
 
   return (
     <View style={styles.container}>
@@ -37,7 +33,7 @@ export default function FilterBar({ categories, selectedCategory, setSelectedCat
           {priceRanges.map((pr) => (
             <Pressable
               key={pr.id}
-              onPress={() => setPriceRange(pr.id)}
+              onPress={() => setPriceRange(priceRange === pr.id ? 'all' : pr.id)}
               style={({ pressed }) => [styles.pill, priceRange === pr.id && styles.pillActive, pressed && styles.pillPressed]}
             >
               <Text style={[styles.pillText, priceRange === pr.id && styles.pillTextActive]}>{pr.label}</Text>

@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Linking } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -12,6 +13,9 @@ import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SignUpScreen from '../screens/SignUpScreen';
+import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
+import PaymentErrorScreen from '../screens/PaymentErrorScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -138,45 +142,80 @@ function ProtectedSignUp({ navigation, route, ...rest }) {
   return <SignUpScreen navigation={navigation} route={route} {...rest} />;
 }
 
-export default function AppNavigator() {
+function MainTabs() {
   return (
-    <NavigationContainer theme={navTheme}>
+    <Tab.Navigator
+      tabBar={(props) => <CenteredTabBar {...props} />}
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: colors.navy,
+        tabBarInactiveTintColor: colors.gray,
+        tabBarStyle: { backgroundColor: colors.white },
+        tabBarIcon: ({ color, size }) => {
+          const icons = {
+            Home: 'home',
+            ShopStack: 'cart',
+            Chat: 'chatbubble-ellipses',
+            Cart: 'basket',
+            Profile: 'person',
+          };
+          const name = icons[route.name] || 'ellipse';
+          return <Ionicons name={name} size={size} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio' }} />
+      <Tab.Screen name="ShopStack" component={ShopStack} options={{ title: 'Tienda' }} />
+      <Tab.Screen name="Cart" component={CartScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Perfil' }} />
+      {/* SignUp is part of the tab navigator but has no tab button so it won't render or reserve space */}
+      <Tab.Screen name="SignUp" component={(props) => <ProtectedSignUp {...props} />} options={{ tabBarButton: null }} />
+      <Tab.Screen name="ForgotPassword" component={require('../screens/ForgotPasswordScreen').default} options={{ tabBarButton: null }} />
+      <Tab.Screen name="ResetPassword" component={require('../screens/ResetPasswordScreen').default} options={{ tabBarButton: null }} />
+    </Tab.Navigator>
+  );
+}
+
+export default function AppNavigator() {
+  const navigationRef = useRef(null);
+
+  useEffect(() => {
+    const handleUrl = (event) => {
+      const url = event?.url || event;
+      if (!url) return;
+      // If the return URL indicates a successful payment, navigate to PaymentSuccess
+      const lowered = String(url).toLowerCase();
+      if (lowered.includes('payment-success') || lowered.includes('/orders/completed') || lowered.includes('orders/completed') || lowered.includes('success')) {
+        try {
+          navigationRef.current?.navigate('PaymentSuccess');
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+
+    // initial URL
+    Linking.getInitialURL().then((initialUrl) => {
+      if (initialUrl) handleUrl(initialUrl);
+    }).catch(() => { });
+
+    const sub = Linking.addEventListener ? Linking.addEventListener('url', handleUrl) : Linking.addListener('url', handleUrl);
+    return () => {
+      try {
+        if (sub && sub.remove) sub.remove();
+        else if (Linking.removeEventListener) Linking.removeEventListener('url', handleUrl);
+      } catch (e) { }
+    };
+  }, []);
+
+  return (
+    <NavigationContainer ref={navigationRef} theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen
-          name="MainTabs"
-          component={() => (
-            <Tab.Navigator
-              tabBar={(props) => <CenteredTabBar {...props} />}
-              screenOptions={({ route }) => ({
-                headerShown: false,
-                tabBarShowLabel: false,
-                tabBarActiveTintColor: colors.navy,
-                tabBarInactiveTintColor: colors.gray,
-                tabBarStyle: { backgroundColor: colors.white },
-                tabBarIcon: ({ color, size }) => {
-                  const icons = {
-                    Home: 'home',
-                    ShopStack: 'cart',
-                    Chat: 'chatbubble-ellipses',
-                    Cart: 'basket',
-                    Profile: 'person',
-                  };
-                  const name = icons[route.name] || 'ellipse';
-                  return <Ionicons name={name} size={size} color={color} />;
-                },
-              })}
-            >
-              <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Inicio' }} />
-              <Tab.Screen name="ShopStack" component={ShopStack} options={{ title: 'Tienda' }} />
-              <Tab.Screen name="Cart" component={CartScreen} />
-              <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Perfil' }} />
-              {/* SignUp is part of the tab navigator but has no tab button so it won't render or reserve space */}
-              <Tab.Screen name="SignUp" component={(props) => <ProtectedSignUp {...props} />} options={{ tabBarButton: null }} />
-              <Tab.Screen name="ForgotPassword" component={require('../screens/ForgotPasswordScreen').default} options={{ tabBarButton: null }} />
-              <Tab.Screen name="ResetPassword" component={require('../screens/ResetPasswordScreen').default} options={{ tabBarButton: null }} />
-            </Tab.Navigator>
-          )}
-        />
+        <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
+        <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
+        <Stack.Screen name="PaymentError" component={PaymentErrorScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

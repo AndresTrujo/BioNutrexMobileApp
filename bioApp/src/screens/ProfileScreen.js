@@ -92,12 +92,16 @@ export default function ProfileScreen() {
           {orders.length === 0 ? (
             <Text style={{ color: colors.gray, marginTop: 8 }}>Sin pedidos aún</Text>
           ) : (
-            orders.map((o) => (
-              <View key={o.id} style={styles.orderRow}>
-                <Text style={styles.orderText}>Pedido {o.id.slice(-6)} - {new Date(o.date).toLocaleDateString()}</Text>
-                <Text style={[styles.orderText, { color: amountColor(o.total) }]}>Total: {formatCurrencyMXN(o.total)}</Text>
-              </View>
-            ))
+            orders.map((o) => {
+              const idStr = String(o && o.id != null ? o.id : '');
+              const shortId = idStr.length > 6 ? idStr.slice(-6) : idStr;
+              return (
+                <View key={idStr || Math.random().toString(36).slice(2, 9)} style={styles.orderRow}>
+                  <Text style={styles.orderText}>Pedido {shortId} - {new Date(o.date).toLocaleDateString()}</Text>
+                  <Text style={[styles.orderText, { color: amountColor(o.total) }]}>Total: {formatCurrencyMXN(o.total)}</Text>
+                </View>
+              );
+            })
           )}
           <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Configuración de cuenta</Text>
           <Text style={{ color: colors.gray }}>Próximamente: dirección, métodos de pago, notificaciones...</Text>

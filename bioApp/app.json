@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "bioapp",
     "name": "bioApp",
     "slug": "bioApp",
     "version": "1.0.0",

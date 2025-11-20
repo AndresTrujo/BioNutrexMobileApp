@@ -54,46 +54,22 @@ export default function CartScreen() {
   };
 
   const handlePay = async () => {
-    // New flow: create order in backend and get a Stripe Checkout URL
-    const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+    // Prevent proceeding if cart is empty
+    if (!items || items.length === 0) {
+      toast.show({ type: 'warning', icon: 'warning', message: 'No hay productos en el carrito' });
+      return;
+    }
+
+    // Ensure at least one item has quantity > 0 and in-stock
+    const hasAvailable = enrichedItems.some((it) => (it.quantity || 0) > 0 && (it.product?.stock || 0) > 0);
+    if (!hasAvailable) {
+      toast.show({ type: 'warning', icon: 'warning', message: 'No hay productos disponibles en stock' });
+      return;
+    }
+
+    // Navigate to Checkout screen to collect buyer info before payment
     try {
-      toast.show({ type: 'info', icon: 'cart', message: 'Creando orden...' });
-      const payload = {
-        items: enrichedItems.map((it) => ({ productId: it.product.id || it.product.ID_PRODUCTO, quantity: it.quantity })),
-        // optionally include shipping / customer details here
-      };
-      const res = await fetch(`${API_BASE}/api/orders/create-checkout/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      let json;
-      try {
-        const ct = res.headers.get('content-type') || '';
-        if (ct.includes('application/json')) {
-          json = await res.json();
-        } else {
-          const text = await res.text();
-          json = { detail: text };
-        }
-      } catch (e) {
-        // fallback: try text
-        const text = await res.text().catch(() => String(e));
-        json = { detail: text };
-      }
-      if (!res.ok) {
-        const message = (json && (json.detail || json.error)) || 'Error creando la orden';
-        toast.show({ type: 'error', icon: 'close-circle', message });
-        console.warn('Create order response:', res.status, message, json);
-        return;
-      }
-      const { checkout_url, order_id } = json;
-      if (checkout_url) {
-        // Open the Stripe Checkout in the system browser
-        Linking.openURL(checkout_url);
-      } else {
-        toast.show({ type: 'error', icon: 'close-circle', message: 'No se obtuvo URL de pago' });
-      }
+      navigation.navigate('Checkout', { items: enrichedItems, total });
     } catch (e) {
       toast.show({ type: 'error', icon: 'close-circle', message: e.message || String(e) });
     }
@@ -121,7 +97,26 @@ export default function CartScreen() {
             <View style={styles.qtyWrap}>
               <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch(setQuantity({ productId: item.productId, quantity: Math.max(1, item.quantity - 1) }))}><Text style={styles.qtyText}>-</Text></TouchableOpacity>
               <Text style={styles.qtyValue}>{item.quantity}</Text>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => dispatch(setQuantity({ productId: item.productId, quantity: item.quantity + 1 }))}><Text style={styles.qtyText}>+</Text></TouchableOpacity>
+              {(() => {
+                const available = item.product?.stock ?? item.product?.STOCK_PROD ?? 0;
+                const requested = (item.quantity || 0) + 1;
+                const canIncrement = requested <= available;
+                return (
+                  <TouchableOpacity
+                    style={[styles.qtyBtn, !canIncrement && styles.qtyBtnDisabled]}
+                    onPress={() => {
+                      if (!canIncrement) {
+                        toast.show({ type: 'warning', icon: 'warning', message: 'No hay suficiente stock para esa cantidad' });
+                        return;
+                      }
+                      dispatch(setQuantity({ productId: item.productId, quantity: requested }));
+                    }}
+                    disabled={!canIncrement}
+                  >
+                    <Text style={styles.qtyText}>+</Text>
+                  </TouchableOpacity>
+                );
+              })()}
             </View>
             <TouchableOpacity
               style={styles.removeBtn}
@@ -190,6 +185,7 @@ const styles = StyleSheet.create({
   qtyBtn: { borderWidth: 1, borderColor: colors.navy, borderRadius: 6, width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   qtyText: { color: colors.navy },
   qtyValue: { marginHorizontal: 6, color: colors.black },
+  qtyBtnDisabled: { borderColor: colors.grayLight, opacity: 0.5 },
   removeBtn: { paddingHorizontal: 8, paddingVertical: 4 },
   removeText: { color: colors.accent },
   summary: { padding: 16, borderTopWidth: 1, borderTopColor: colors.grayLight, backgroundColor: '#F9FAFB' },

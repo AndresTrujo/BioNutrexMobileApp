@@ -50,8 +50,8 @@ export default function CheckoutScreen({ route }) {
 
             toast.show({ type: 'info', icon: 'cart', message: 'Creando orden y redirigiendo a Stripe...' });
 
-            // Build API base (local dev fallback)
-            const apiBase = Platform.OS === 'android' ? 'http://10.0.2.2:8000/api' : 'http://localhost:8000/api';
+            // Build API base (use production host)
+            const apiBase = 'http://165.22.166.75/api';
             const payload = { items: enrichedItems.map((it) => ({ productId: it.product.id || it.product.ID_PRODUCTO, quantity: it.quantity })), full_name: fullName, email, address, amount: total };
 
             let res;

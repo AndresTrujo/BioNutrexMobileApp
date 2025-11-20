@@ -15,7 +15,7 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+  const API_BASE = 'http://165.22.166.75';
   const toast = useToast();
 
   if (!user) {
@@ -36,7 +36,7 @@ export default function ProfileScreen() {
               const res = await fetch(`${API_BASE}/api/token/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: email, password }),
+                body: JSON.stringify({ email, password }),
               });
               const json = await res.json();
               if (res.ok) {

@@ -19,7 +19,7 @@ export default function SignUpScreen() {
     const toast = useToast();
     const isFocused = useIsFocused();
 
-    const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+    const API_BASE = 'http://165.22.166.75';
 
     const handleSignUp = async () => {
         if (!email || !password || !name) {

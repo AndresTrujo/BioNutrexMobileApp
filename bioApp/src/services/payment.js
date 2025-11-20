@@ -10,9 +10,9 @@ export function usePayment() {
     try {
       let endpoint = Constants?.expoConfig?.extra?.paymentEndpoint;
       if (!endpoint) {
-        // default fallbacks for local dev
+        // default fallbacks for local/dev — point to production host provided by user
         const isAndroid = (Constants?.platform?.android) ? true : false;
-        endpoint = isAndroid ? 'http://10.0.2.2:8000/api' : 'http://localhost:8000/api';
+        endpoint = 'http://165.22.166.75/api';
       }
       // ensure endpoint has no trailing slash, then append the payment-sheet path with trailing slash
       const base = endpoint.replace(/\/$/, '');

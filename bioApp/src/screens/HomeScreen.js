@@ -11,6 +11,7 @@ export default function HomeScreen({ navigation }) {
   const products = useSelector((state) => state.products.list);
   const featured = useMemo(() => products.filter((p) => p.featured), [products]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const sliderCategories = useMemo(() => [{ id: 'all', name: 'Todos' }, ...CATEGORY_OPTIONS], []);
 
   // Visible list for the bottom section:
   // - if a specific category is selected: return the first 6 products of that category
@@ -40,15 +41,23 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.header}>
             <Text style={styles.title}>Promociones y destacados</Text>
             <Text style={styles.subtitle}>Explora las mejores ofertas del momento</Text>
-            <View style={styles.categories}>
-              <TouchableOpacity key={'all'} style={[styles.categoryPill, selectedCategory === 'all' && styles.categoryPillActive]} onPress={() => setSelectedCategory('all')}>
-                <Text style={[styles.categoryText, selectedCategory === 'all' && styles.categoryTextActive]}>Todos</Text>
-              </TouchableOpacity>
-              {CATEGORY_OPTIONS.map((c) => (
-                <TouchableOpacity key={c.id} style={[styles.categoryPill, selectedCategory === c.id && styles.categoryPillActive]} onPress={() => setSelectedCategory(c.id)}>
-                  <Text style={[styles.categoryText, selectedCategory === c.id && styles.categoryTextActive]}>{c.name}</Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.categoriesSlider}>
+              <FlatList
+                data={sliderCategories}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.categoryPill, selectedCategory === item.id && styles.categoryPillActive]}
+                    onPress={() => setSelectedCategory(item.id)}
+                  >
+                    <Text style={[styles.categoryText, selectedCategory === item.id && styles.categoryTextActive]}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+                contentContainerStyle={{ paddingHorizontal: 2 }}
+              />
             </View>
           </View>
         </View>
@@ -67,14 +76,13 @@ const styles = StyleSheet.create({
   header: { backgroundColor: colors.white, padding: 16 },
   title: { color: colors.navy, fontSize: 22, fontWeight: '700' },
   subtitle: { color: colors.gray, marginTop: 4 },
-  categories: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12 },
+  categoriesSlider: { marginTop: 12 },
   categoryPill: {
     borderWidth: 1,
     borderColor: colors.navy,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginRight: 8,
     marginBottom: 8,
   },
   categoryPillActive: { backgroundColor: colors.navy },

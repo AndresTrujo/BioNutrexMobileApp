@@ -10,6 +10,7 @@ import React, { useState, useCallback } from 'react';
 import SplashScreen from './src/screens/SplashScreen';
 import TopBanner from './src/components/TopBanner';
 import { ToastProvider } from './src/components/ToastProvider';
+import ChatWidget from './src/components/ChatWidget'; // Importar el widget
 
 export default function App() {
   const publishableKey = Constants?.expoConfig?.extra?.stripePublishableKey || 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX';
@@ -23,6 +24,7 @@ export default function App() {
             <StatusBar style="light" />
             <TopBanner />
             {ready ? <AppNavigator /> : <SplashScreen onDone={handleSplashDone} />}
+            <ChatWidget />
           </View>
         </ToastProvider>
       </StripeProvider>

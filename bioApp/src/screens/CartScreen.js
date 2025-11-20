@@ -15,6 +15,7 @@ export default function CartScreen() {
   const { items, shipping } = useSelector((s) => s.cart);
   const dispatch = useDispatch();
   const [taxRate] = useState(0.21);
+  const [detailsVisible, setDetailsVisible] = useState(false);
   const { initialize, pay } = usePayment();
   const navigation = useNavigation();
   const toast = useToast();
@@ -103,22 +104,29 @@ export default function CartScreen() {
       />
       <View style={styles.summary}>
         <Text style={styles.summaryTitle}>Resumen de compra</Text>
-        <View style={styles.shippingRow}>
-          <Text style={styles.label}>Envío:</Text>
-          <View style={styles.shippingBtns}>
-            {[
-              { id: 'standard', label: 'Estándar' },
-              { id: 'express', label: 'Express' },
-            ].map((opt) => (
-              <TouchableOpacity key={opt.id} style={[styles.shipBtn, shipping === opt.id && styles.shipBtnActive]} onPress={() => { dispatch(setShipping(opt.id)); toast.show({ type: 'info', icon: 'airplane', message: `Envío ${opt.label} seleccionado` }); }}>
-                <Text style={[styles.shipText, shipping === opt.id && styles.shipTextActive]}>{opt.label}</Text>
-              </TouchableOpacity>
-            ))}
+        <TouchableOpacity onPress={() => setDetailsVisible(!detailsVisible)} style={styles.accordionHeader}>
+          <Text style={styles.accordionTitle}>más detalle</Text>
+        </TouchableOpacity>
+        {detailsVisible && (
+          <View style={styles.accordionContent}>
+            <View style={styles.shippingRow}>
+              <Text style={styles.label}>Envío:</Text>
+              <View style={styles.shippingBtns}>
+                {[
+                  { id: 'standard', label: 'Estándar' },
+                  { id: 'express', label: 'Express' },
+                ].map((opt) => (
+                  <TouchableOpacity key={opt.id} style={[styles.shipBtn, shipping === opt.id && styles.shipBtnActive]} onPress={() => { dispatch(setShipping(opt.id)); toast.show({ type: 'info', icon: 'airplane', message: `Envío ${opt.label} seleccionado` }); }}>
+                    <Text style={[styles.shipText, shipping === opt.id && styles.shipTextActive]}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            <View style={styles.totalsRow}><Text style={styles.label}>Subtotal</Text><Text style={[styles.value, { color: amountColor(subtotal) }]}>{formatCurrencyMXN(subtotal)}</Text></View>
+            <View style={styles.totalsRow}><Text style={styles.label}>Envío</Text><Text style={[styles.value, { color: amountColor(shippingCost) }]}>{formatCurrencyMXN(shippingCost)}</Text></View>
+            <View style={styles.totalsRow}><Text style={styles.label}>Impuestos (21%)</Text><Text style={[styles.value, { color: amountColor(taxes) }]}>{formatCurrencyMXN(taxes)}</Text></View>
           </View>
-        </View>
-        <View style={styles.totalsRow}><Text style={styles.label}>Subtotal</Text><Text style={[styles.value, { color: amountColor(subtotal) }]}>{formatCurrencyMXN(subtotal)}</Text></View>
-        <View style={styles.totalsRow}><Text style={styles.label}>Envío</Text><Text style={[styles.value, { color: amountColor(shippingCost) }]}>{formatCurrencyMXN(shippingCost)}</Text></View>
-        <View style={styles.totalsRow}><Text style={styles.label}>Impuestos (21%)</Text><Text style={[styles.value, { color: amountColor(taxes) }]}>{formatCurrencyMXN(taxes)}</Text></View>
+        )}
         <View style={[styles.totalsRow, styles.totalRow]}><Text style={[styles.label, styles.totalLabel]}>Total</Text><Text style={[styles.value, styles.totalValue, { color: amountColor(total) }]}>{formatCurrencyMXN(total)}</Text></View>
         <TouchableOpacity style={styles.payBtn} onPress={handlePay} accessibilityRole="button" accessibilityLabel="Pagar ahora">
           <Text style={styles.payText}>Pagar ahora</Text>
@@ -154,6 +162,17 @@ const styles = StyleSheet.create({
   removeText: { color: colors.accent },
   summary: { padding: 16, borderTopWidth: 1, borderTopColor: colors.grayLight, backgroundColor: '#F9FAFB' },
   summaryTitle: { color: colors.black, fontWeight: '800', marginBottom: 8 },
+  accordionHeader: {
+    paddingVertical: 8,
+  },
+  accordionTitle: {
+    color: colors.navy,
+    fontWeight: '600',
+    textAlign: 'right',
+  },
+  accordionContent: {
+    paddingTop: 8,
+  },
   shippingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   label: { color: colors.black },
   value: { color: colors.black },

@@ -10,6 +10,8 @@ import SmartImage from '../components/SmartImage';
 import { useNavigation } from '@react-navigation/native';
 import { useToast } from '../components/ToastProvider';
 import { formatCurrencyMXN, amountColor } from '../utils/currency';
+import { Linking } from 'react-native';
+import { Platform } from 'react-native';
 
 export default function CartScreen() {
   const { items, shipping } = useSelector((s) => s.cart);
@@ -52,18 +54,48 @@ export default function CartScreen() {
   };
 
   const handlePay = async () => {
-    const endpoint = Constants?.expoConfig?.extra?.paymentEndpoint;
-    if (endpoint) {
-      const init = await initialize(Math.round(total * 100), 'mxn');
-      if (init.ok) {
-        const paid = await pay();
-        if (paid.ok) simulatePayment();
-      } else {
-        alert('No se pudo inicializar el pago real. Usando modo prueba.');
-        simulatePayment();
+    // New flow: create order in backend and get a Stripe Checkout URL
+    const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+    try {
+      toast.show({ type: 'info', icon: 'cart', message: 'Creando orden...' });
+      const payload = {
+        items: enrichedItems.map((it) => ({ productId: it.product.id || it.product.ID_PRODUCTO, quantity: it.quantity })),
+        // optionally include shipping / customer details here
+      };
+      const res = await fetch(`${API_BASE}/api/orders/create-checkout/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      let json;
+      try {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          json = await res.json();
+        } else {
+          const text = await res.text();
+          json = { detail: text };
+        }
+      } catch (e) {
+        // fallback: try text
+        const text = await res.text().catch(() => String(e));
+        json = { detail: text };
       }
-    } else {
-      simulatePayment();
+      if (!res.ok) {
+        const message = (json && (json.detail || json.error)) || 'Error creando la orden';
+        toast.show({ type: 'error', icon: 'close-circle', message });
+        console.warn('Create order response:', res.status, message, json);
+        return;
+      }
+      const { checkout_url, order_id } = json;
+      if (checkout_url) {
+        // Open the Stripe Checkout in the system browser
+        Linking.openURL(checkout_url);
+      } else {
+        toast.show({ type: 'error', icon: 'close-circle', message: 'No se obtuvo URL de pago' });
+      }
+    } catch (e) {
+      toast.show({ type: 'error', icon: 'close-circle', message: e.message || String(e) });
     }
   };
 

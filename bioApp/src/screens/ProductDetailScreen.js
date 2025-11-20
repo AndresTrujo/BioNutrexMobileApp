@@ -21,13 +21,33 @@ export default function ProductDetailScreen({ route }) {
   const toast = useToast();
   const navigation = useNavigation();
 
+  const handleBack = () => {
+    const from = route && route.params && route.params.from;
+    if (from) {
+      // allow either a route name string or an object { name, params }
+      if (typeof from === 'string') {
+        navigation.navigate(from);
+        return;
+      }
+      if (typeof from === 'object' && from.name) {
+        navigation.navigate(from.name, from.params);
+        return;
+      }
+    }
+    if (navigation.canGoBack && navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Home');
+    }
+  };
+
   if (!product) return <View style={styles.container}><Text>Producto no encontrado</Text></View>;
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backBtn}
-        onPress={() => navigation.goBack()}
+        onPress={handleBack}
         accessibilityRole="button"
         accessibilityLabel="Regresar"
       >
@@ -38,6 +58,14 @@ export default function ProductDetailScreen({ route }) {
       )}
       <Text style={styles.name}>{product.name}</Text>
       <Text style={[styles.price, { color: amountColor(product.price) }]}>{formatCurrencyMXN(product.price)}</Text>
+      <View style={styles.tagsRow}>
+        <View style={styles.tag}>
+          <Text style={styles.tagText}>Stock: {product.stock ?? '—'}</Text>
+        </View>
+        <View style={styles.tag}>
+          <Text style={styles.tagText} numberOfLines={1}>{product.description ?? 'Sin descripción'}</Text>
+        </View>
+      </View>
       <View style={styles.row}>
         <TouchableOpacity style={styles.btnPrimary} onPress={() => { dispatch(addToCart({ productId })); toast.show({ type: 'success', icon: 'basket', message: 'Agregado al carrito' }); }}>
           <Text style={styles.btnPrimaryText}>Añadir al carrito</Text>
@@ -83,4 +111,7 @@ const styles = StyleSheet.create({
   btnSecondaryActive: { backgroundColor: colors.navy },
   btnSecondaryText: { color: colors.navy, fontWeight: '700' },
   btnSecondaryTextActive: { color: colors.white },
+  tagsRow: { flexDirection: 'row', marginTop: 12, marginBottom: 6 },
+  tag: { backgroundColor: colors.grayLight, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, marginRight: 8 },
+  tagText: { color: colors.navy, fontWeight: '600' },
 });

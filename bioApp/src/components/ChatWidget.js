@@ -65,7 +65,7 @@ const ChatWidget = () => {
           setModalVisible(!modalVisible);
         }}
       >
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
     height: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    right: 30,
-    bottom: 30,
+    right: 20,
+    top: 20,
     backgroundColor: '#007bff',
     borderRadius: 30,
     elevation: 8,
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    zIndex: 9999,
   },
   modalOverlay: {
     flex: 1,

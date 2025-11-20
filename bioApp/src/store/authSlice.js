@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   user: null, // { name, email }
+  tokens: null, // { access, refresh }
   orders: [], // { id, items, total, date }
   wishlist: [], // productIds
 };
@@ -15,11 +16,18 @@ const authSlice = createSlice({
       state.user = { name, email };
     },
     login: (state, action) => {
-      const { email } = action.payload;
-      state.user = { name: 'Usuario', email };
+      const { name, email, tokens } = action.payload;
+      state.user = { name, email };
+      if (tokens) state.tokens = tokens;
+    },
+    setAuth: (state, action) => {
+      const { user, tokens } = action.payload;
+      state.user = user || state.user;
+      state.tokens = tokens || state.tokens;
     },
     logout: (state) => {
       state.user = null;
+      state.tokens = null;
     },
     addOrder: (state, action) => {
       state.orders.push(action.payload);
@@ -35,5 +43,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { register, login, logout, addOrder, addToWishlist, removeFromWishlist } = authSlice.actions;
+export const { register, login, setAuth, logout, addOrder, addToWishlist, removeFromWishlist } = authSlice.actions;
 export default authSlice.reducer;

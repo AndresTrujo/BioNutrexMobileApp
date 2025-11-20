@@ -38,6 +38,8 @@ export default function SplashScreen({ onDone }) {
           price: Number.parseFloat(it.price ?? it.PROD_PRECIO_PUB ?? it.precio ?? 0) || 0,
           category: it.category ?? it.PROD_CATEGORIA ?? null,
           image: it.image ?? it.PROD_IMAGEN ?? it.imagen ?? null,
+          stock: Number.parseFloat(it.stock ?? it.STOCK_PROD ?? 0) || 0,
+          description: it.description ?? it.PROD_DESCRIPCION_DESC ?? '',
           // preserve backend 'featured' flag if present; default to false
           featured: Boolean(it.featured) || false,
           ...it,

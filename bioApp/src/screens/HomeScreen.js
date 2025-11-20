@@ -35,7 +35,7 @@ export default function HomeScreen({ navigation }) {
           <ProductCarousel
             products={featured.slice(0, 6)}
             onPressItem={(item) =>
-              navigation.navigate('ShopStack', { screen: 'ProductDetail', params: { productId: item.id } })
+              navigation.navigate('ShopStack', { screen: 'ProductDetail', params: { productId: item.id, from: 'Home' } })
             }
           />
           <View style={styles.header}>
@@ -65,7 +65,7 @@ export default function HomeScreen({ navigation }) {
       data={visibleProducts}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <ProductCard product={item} onPress={() => navigation.navigate('ShopStack', { screen: 'ProductDetail', params: { productId: item.id } })} />
+        <ProductCard product={item} onPress={() => navigation.navigate('ShopStack', { screen: 'ProductDetail', params: { productId: item.id, from: 'Home' } })} />
       )}
       contentContainerStyle={{ paddingBottom: 24 }}
     />

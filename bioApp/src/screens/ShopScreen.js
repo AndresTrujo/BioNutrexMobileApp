@@ -41,7 +41,6 @@ export default function ShopScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <SearchBar value={query} onChange={setQuery} />
-
       <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
         <TouchableOpacity
           onPress={() => setFiltersOpen((v) => !v)}
@@ -81,7 +80,7 @@ export default function ShopScreen({ navigation }) {
           data={filtered}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <ProductCard variant="fixed" product={item} onPress={() => navigation.navigate('ProductDetail', { productId: item.id })} />
+            <ProductCard variant="fixed" product={item} onPress={() => navigation.navigate('ProductDetail', { productId: item.id, from: 'Shop' })} />
           )}
         />
       )}

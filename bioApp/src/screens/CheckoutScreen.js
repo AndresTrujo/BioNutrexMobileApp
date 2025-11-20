@@ -5,6 +5,7 @@ import { colors } from '../theme/colors';
 import { formatCurrencyMXN, amountColor } from '../utils/currency';
 import { usePayment } from '../services/payment';
 import { useNavigation } from '@react-navigation/native';
+import Constants from 'expo-constants';
 import { useToast } from '../components/ToastProvider';
 import { clearCart } from '../store/cartSlice';
 import { addOrder } from '../store/authSlice';
@@ -50,10 +51,85 @@ export default function CheckoutScreen({ route }) {
 
             toast.show({ type: 'info', icon: 'cart', message: 'Creando orden y redirigiendo a Stripe...' });
 
-            // Build API base (use production host)
+            // If we're running inside Expo Go, use an in-app WebView flow (no native Stripe required).
             const apiBase = 'http://165.22.166.75/api';
             const payload = { items: enrichedItems.map((it) => ({ productId: it.product.id || it.product.ID_PRODUCTO, quantity: it.quantity })), full_name: fullName, email, address, amount: total };
 
+            // If running on Expo Go, prefer an in-app WebView payment flow that uses stripe.js
+            const preferInApp = Constants && Constants.appOwnership === 'expo';
+            if (preferInApp) {
+                // call payment_sheet endpoint to create a PaymentIntent and receive client secret + publishable key
+                let res2;
+                try {
+                    res2 = await fetch(`${apiBase}/payment-sheet/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                } catch (e) {
+                    toast.show({ type: 'error', icon: 'close-circle', message: 'Error de red al crear la orden' });
+                    setLoading(false);
+                    return;
+                }
+
+                let json2;
+                try {
+                    json2 = await res2.json();
+                } catch (e) {
+                    toast.show({ type: 'error', icon: 'close-circle', message: 'Respuesta inválida del servidor' });
+                    setLoading(false);
+                    return;
+                }
+
+                if (!res2.ok) {
+                    toast.show({ type: 'error', icon: 'close-circle', message: json2.detail || json2.error || 'No se pudo crear la orden' });
+                    setLoading(false);
+                    return;
+                }
+
+                // Normalize possible response keys for client secret
+                const clientSecret = json2.paymentIntent || json2.payment_intent || json2.paymentIntentClientSecret || json2.client_secret || json2.clientSecret;
+                // Prefer backend publishable key but fall back to app config (app.json / app.config.js)
+                const publishableKey = 'pk_test_51RVuzfCjeYG66smeXRgEmy1Ox5o0gKHZJbsDrB8qZ6u9HfNCBYgB1s1E95n3aFKx4PVjo5DR3LAnOLsXaFj8nqjZ00Iicd2vqk';
+                const orderId = json2.order_id || json2.orderId || json2.id;
+
+                try {
+                    // detect obvious placeholder/invalid keys (many apps replace the real key with Xs)
+                    const looksLikePlaceholder = (k) => {
+                        if (!k) return true;
+                        try {
+                            const up = String(k);
+                            if (up.includes('XXXXX') || /X{4,}/.test(up)) return true;
+                            if (/^pk_(test|live)_?X{4,}/i.test(up)) return true;
+                            return false;
+                        } catch (e) { return true; }
+                    };
+
+                    if (looksLikePlaceholder(publishableKey)) {
+                        console.warn('Stripe publishable key appears invalid or placeholder:', publishableKey);
+                        toast.show({ type: 'error', icon: 'close-circle', message: 'Clave pública de Stripe inválida. Configura STRIPE_PUBLISHABLE_KEY en el backend o EXPO_PUBLIC_STRIPE_PK en app.config.' });
+                        setLoading(false);
+                        return;
+                    }
+                    const order = { id: String(orderId || 'local_' + Date.now()), items: enrichedItems, total, date: new Date().toISOString() };
+                    dispatch(addOrder(order));
+                } catch (e) {
+                    console.warn('Failed to add order to redux:', e);
+                }
+
+                if (!clientSecret) {
+                    toast.show({ type: 'error', icon: 'close-circle', message: 'No se obtuvo client_secret de Stripe' });
+                    setLoading(false);
+                    return;
+                }
+
+                // navigate to InAppPayment screen which will load Stripe.js in a WebView and confirm the payment
+                navigation.navigate('InAppPayment', { clientSecret, publishableKey, orderId });
+                setLoading(false);
+                return;
+            }
+
+            // Fallback: existing redirect to Stripe Checkout
             let res;
             try {
                 res = await fetch(`${apiBase}/orders/create-checkout/`, {
@@ -83,10 +159,10 @@ export default function CheckoutScreen({ route }) {
             }
 
             const checkoutUrl = json.checkout_url || json.checkoutUrl || json.url;
-            const orderId = json.order_id || json.orderId || json.id;
+            const orderIdFallback = json.order_id || json.orderId || json.id;
             // add order to local history as pending
             try {
-                const order = { id: String(orderId || 'local_' + Date.now()), items: enrichedItems, total, date: new Date().toISOString() };
+                const order = { id: String(orderIdFallback || 'local_' + Date.now()), items: enrichedItems, total, date: new Date().toISOString() };
                 dispatch(addOrder(order));
             } catch (e) {
                 console.warn('Failed to add order to redux:', e);
@@ -98,7 +174,6 @@ export default function CheckoutScreen({ route }) {
                 return;
             }
 
-            // Open Stripe Checkout in browser; ensure success_url set in backend to a deep link (e.g., myapp://payment-success)
             try {
                 await Linking.openURL(checkoutUrl);
             } catch (e) {
@@ -106,8 +181,6 @@ export default function CheckoutScreen({ route }) {
                 setLoading(false);
                 return;
             }
-
-            // We don't mark the order paid here; webhook or deep-link return will handle marking as paid and navigation.
         } catch (e) {
             toast.show({ type: 'error', icon: 'close-circle', message: e.message || String(e) });
         } finally {

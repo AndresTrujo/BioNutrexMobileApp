@@ -16,6 +16,7 @@ import SignUpScreen from '../screens/SignUpScreen';
 import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 import PaymentErrorScreen from '../screens/PaymentErrorScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
+import InAppPaymentScreen from '../screens/InAppPaymentScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -214,6 +215,7 @@ export default function AppNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Checkout" component={CheckoutScreen} />
+        <Stack.Screen name="InAppPayment" component={InAppPaymentScreen} />
         <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
         <Stack.Screen name="PaymentError" component={PaymentErrorScreen} />
       </Stack.Navigator>

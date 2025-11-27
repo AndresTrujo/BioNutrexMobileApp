@@ -25,7 +25,7 @@
     "expo-constants": "^18.0.10",
     "expo-image": "~3.0.10",
     "expo-status-bar": "~3.0.8",
-    "package.json": "^2.0.1",
+    "package.json": "^0.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",

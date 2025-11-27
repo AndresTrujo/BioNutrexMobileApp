@@ -25,7 +25,7 @@ export default function SplashScreen({ onDone }) {
   useEffect(() => {
     let mounted = true;
     const controller = new AbortController();
-    const API_BASE = 'http://165.22.166.75';
+    const API_BASE = 'https://bionutrexmobile.duckdns.org/';
 
     async function fetchProducts() {
       try {

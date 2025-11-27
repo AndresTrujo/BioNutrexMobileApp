@@ -1,6 +1,7 @@
-import { registerRootComponent } from 'expo';
+const { registerRootComponent } = require('expo');
 
-import App from './App';
+// Use CommonJS require here to avoid transform/minifier errors during bundling
+const App = require('./App').default;
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,

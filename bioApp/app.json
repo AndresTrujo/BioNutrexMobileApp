@@ -26,6 +26,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "stripePublishableKey": "pk_test_XXXXXXXXXXXXXXXXXXXXXXXX",
+      "eas": {
+        "projectId": "daf89bb3-8b06-4c00-b243-eb58cfaa8bbc"
+      }
+    },
+    "eas": {
+      "projectId": "daf89bb3-8b06-4c00-b243-eb58cfaa8bbc"
     }
   }
 }

@@ -55,78 +55,31 @@ export default function CheckoutScreen({ route }) {
             const apiBase = 'https://bionutrexmobile.duckdns.org/api';
             const payload = { items: enrichedItems.map((it) => ({ productId: it.product.id || it.product.ID_PRODUCTO, quantity: it.quantity })), full_name: fullName, email, address, amount: total };
 
-            // If running on Expo Go, prefer an in-app WebView payment flow that uses stripe.js
-            const preferInApp = Constants && Constants.appOwnership === 'expo';
-            if (preferInApp) {
-                // call payment_sheet endpoint to create a PaymentIntent and receive client secret + publishable key
-                let res2;
-                try {
-                    res2 = await fetch(`${apiBase}/payment-sheet/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    });
-                } catch (e) {
-                    toast.show({ type: 'error', icon: 'close-circle', message: 'Error de red al crear la orden' });
-                    setLoading(false);
-                    return;
-                }
+            // Prefer native Payment Sheet flow first (works for standalone/native builds).
+            try {
+                const initRes = await initialize(total, 'mxn', payload);
+                if (initRes && initRes.ok) {
+                    // Persist order locally as pending (backend may have returned an order id)
+                    try {
+                        const serverData = initRes.data || {};
+                        const orderId = serverData.order_id || serverData.orderId || serverData.id || ('local_' + Date.now());
+                        const order = { id: String(orderId), items: enrichedItems, total, date: new Date().toISOString() };
+                        dispatch(addOrder(order));
+                    } catch (e) {
+                        console.warn('Failed to add order to redux after init:', e);
+                    }
 
-                let json2;
-                try {
-                    json2 = await res2.json();
-                } catch (e) {
-                    toast.show({ type: 'error', icon: 'close-circle', message: 'Respuesta inválida del servidor' });
-                    setLoading(false);
-                    return;
-                }
-
-                if (!res2.ok) {
-                    toast.show({ type: 'error', icon: 'close-circle', message: json2.detail || json2.error || 'No se pudo crear la orden' });
-                    setLoading(false);
-                    return;
-                }
-
-                // Normalize possible response keys for client secret
-                const clientSecret = json2.paymentIntent || json2.payment_intent || json2.paymentIntentClientSecret || json2.client_secret || json2.clientSecret;
-                // Prefer backend publishable key but fall back to app config (app.json / app.config.js)
-                const publishableKey = 'pk_test_51RVuzfCjeYG66smeXRgEmy1Ox5o0gKHZJbsDrB8qZ6u9HfNCBYgB1s1E95n3aFKx4PVjo5DR3LAnOLsXaFj8nqjZ00Iicd2vqk';
-                const orderId = json2.order_id || json2.orderId || json2.id;
-
-                try {
-                    // detect obvious placeholder/invalid keys (many apps replace the real key with Xs)
-                    const looksLikePlaceholder = (k) => {
-                        if (!k) return true;
-                        try {
-                            const up = String(k);
-                            if (up.includes('XXXXX') || /X{4,}/.test(up)) return true;
-                            if (/^pk_(test|live)_?X{4,}/i.test(up)) return true;
-                            return false;
-                        } catch (e) { return true; }
-                    };
-
-                    if (looksLikePlaceholder(publishableKey)) {
-                        console.warn('Stripe publishable key appears invalid or placeholder:', publishableKey);
-                        toast.show({ type: 'error', icon: 'close-circle', message: 'Clave pública de Stripe inválida. Configura STRIPE_PUBLISHABLE_KEY en el backend o EXPO_PUBLIC_STRIPE_PK en app.config.' });
+                    // Present native payment sheet
+                    const payRes = await pay();
+                    if (payRes && payRes.ok) {
+                        try { navigation.navigate('PaymentSuccess'); } catch (e) { /* ignore */ }
                         setLoading(false);
                         return;
                     }
-                    const order = { id: String(orderId || 'local_' + Date.now()), items: enrichedItems, total, date: new Date().toISOString() };
-                    dispatch(addOrder(order));
-                } catch (e) {
-                    console.warn('Failed to add order to redux:', e);
+                    // If native sheet presentation failed, fall through to fallback behaviour
                 }
-
-                if (!clientSecret) {
-                    toast.show({ type: 'error', icon: 'close-circle', message: 'No se obtuvo client_secret de Stripe' });
-                    setLoading(false);
-                    return;
-                }
-
-                // navigate to InAppPayment screen which will load Stripe.js in a WebView and confirm the payment
-                navigation.navigate('InAppPayment', { clientSecret, publishableKey, orderId });
-                setLoading(false);
-                return;
+            } catch (e) {
+                console.warn('Native Payment Sheet initialization failed, falling back to checkout redirect:', e);
             }
 
             // Fallback: existing redirect to Stripe Checkout

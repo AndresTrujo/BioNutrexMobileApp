@@ -31,7 +31,7 @@ export default {
     },
     extra: {
       stripePublishableKey:
-        process.env.EXPO_PUBLIC_STRIPE_PK || "pk_test_XXXXXXXXXXXXXXXXXXXXXXXX",
+        process.env.EXPO_PUBLIC_STRIPE_PK || "pk_test_51RVuzfCjeYG66smeXRgEmy1Ox5o0gKHZJbsDrB8qZ6u9HfNCBYgB1s1E95n3aFKx4PVjo5DR3LAnOLsXaFj8nqjZ00Iicd2vqk",
       eas: {
         projectId: "9b32b44a-0fc4-45e5-b615-98fcd62aef14",
       },

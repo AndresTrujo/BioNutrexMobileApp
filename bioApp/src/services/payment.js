@@ -12,7 +12,7 @@ export function usePayment() {
       if (!endpoint) {
         // default fallbacks for local/dev — point to production host provided by user
         const isAndroid = (Constants?.platform?.android) ? true : false;
-        endpoint = 'http://165.22.166.75/api';
+        endpoint = 'https://bionutrexmobile.duckdns.org/api';
       }
       // ensure endpoint has no trailing slash, then append the payment-sheet path with trailing slash
       const base = endpoint.replace(/\/$/, '');

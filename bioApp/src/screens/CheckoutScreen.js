@@ -52,7 +52,7 @@ export default function CheckoutScreen({ route }) {
             toast.show({ type: 'info', icon: 'cart', message: 'Creando orden y redirigiendo a Stripe...' });
 
             // If we're running inside Expo Go, use an in-app WebView flow (no native Stripe required).
-            const apiBase = 'http://165.22.166.75/api';
+            const apiBase = 'https://bionutrexmobile.duckdns.org/api';
             const payload = { items: enrichedItems.map((it) => ({ productId: it.product.id || it.product.ID_PRODUCTO, quantity: it.quantity })), full_name: fullName, email, address, amount: total };
 
             // If running on Expo Go, prefer an in-app WebView payment flow that uses stripe.js

@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Ejemplo de network_security_config.xml
-  Reemplaza YOUR_HOST_OR_IP por el dominio o la IP de tu servidor (ej. example.com o 192.168.1.10).
-  Copia este archivo a: android/app/src/main/res/xml/network_security_config.xml
-  y añade android:networkSecurityConfig="@xml/network_security_config" en la etiqueta <application>
--->
 <network-security-config>
-  <domain-config cleartextTrafficPermitted="true">
-    <domain includeSubdomains="true">165.22.166.75</domain>
+  <domain-config cleartextTrafficPermitted="false">
+    <domain includeSubdomains="true">https://bionutrexmobile.duckdns.org</domain>
+    <trust-anchors>
+      <certificates src="system"/>
+      <certificates src="user"/>
+    </trust-anchors>
   </domain-config>
-  <!-- Por seguridad, desactivamos cleartext por defecto -->
-  <base-config cleartextTrafficPermitted="false" />
 </network-security-config>

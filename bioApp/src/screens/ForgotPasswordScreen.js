@@ -8,7 +8,7 @@ export default function ForgotPasswordScreen() {
     const [email, setEmail] = useState('');
     const navigation = useNavigation();
     const toast = useToast();
-    const API_BASE = 'http://165.22.166.75';
+    const API_BASE = 'https://bionutrexmobile.duckdns.org';
 
     const handleRequest = async () => {
         if (!email) {

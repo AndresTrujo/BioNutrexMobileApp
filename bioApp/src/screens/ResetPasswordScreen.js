@@ -12,7 +12,7 @@ export default function ResetPasswordScreen() {
     const [token, setToken] = useState(route.params?.token || '');
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
-    const API_BASE = 'http://165.22.166.75';
+    const API_BASE = 'https://bionutrexmobile.duckdns.org';
 
     const handleReset = async () => {
         if (!uid || !token || !password) {

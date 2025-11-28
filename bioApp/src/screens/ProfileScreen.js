@@ -15,7 +15,7 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  const API_BASE = 'http://165.22.166.75';
+  const API_BASE = 'https://bionutrexmobile.duckdns.org';
   const toast = useToast();
 
   if (!user) {

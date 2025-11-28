@@ -19,7 +19,7 @@ export default function SignUpScreen() {
     const toast = useToast();
     const isFocused = useIsFocused();
 
-    const API_BASE = 'http://165.22.166.75';
+    const API_BASE = 'https://bionutrexmobile.duckdns.org';
 
     const handleSignUp = async () => {
         if (!email || !password || !name) {

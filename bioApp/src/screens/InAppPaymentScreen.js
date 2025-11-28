@@ -85,7 +85,7 @@ export default function InAppPaymentScreen({ route, navigation }) {
     </html>
   `;
 
-    const API_BASE = 'http://165.22.166.75/api';
+    const API_BASE = 'https://bionutrexmobile.duckdns.org/api';
 
     const onMessage = async (event) => {
         try {

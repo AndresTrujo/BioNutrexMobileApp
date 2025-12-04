@@ -80,7 +80,14 @@ export default function ShopScreen({ navigation }) {
           data={filtered}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <ProductCard variant="fixed" product={item} onPress={() => navigation.navigate('ProductDetail', { productId: item.id, from: 'Shop' })} />
+            <ProductCard
+              variant="fixed"
+              product={item}
+              onPress={() => navigation.getParent()?.navigate('ProductDetail', {
+                productId: item.id,
+                from: 'Shop'
+              })}
+            />
           )}
         />
       )}

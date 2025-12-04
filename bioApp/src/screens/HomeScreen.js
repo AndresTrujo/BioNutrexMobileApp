@@ -65,7 +65,13 @@ export default function HomeScreen({ navigation }) {
       data={visibleProducts}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <ProductCard product={item} onPress={() => navigation.navigate('ShopStack', { screen: 'ProductDetail', params: { productId: item.id, from: 'Home' } })} />
+        <ProductCard
+          product={item}
+          onPress={() => navigation.getParent()?.navigate('ProductDetail', {
+            productId: item.id,
+            from: 'Home'
+          })}
+        />
       )}
       contentContainerStyle={{ paddingBottom: 24 }}
     />

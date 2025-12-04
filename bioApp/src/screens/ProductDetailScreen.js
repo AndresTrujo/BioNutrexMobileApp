@@ -22,24 +22,21 @@ export default function ProductDetailScreen({ route }) {
   const navigation = useNavigation();
 
   const handleBack = () => {
-    const from = route && route.params && route.params.from;
-    if (from) {
-      // allow either a route name string or an object { name, params }
-      if (typeof from === 'string') {
-        navigation.navigate(from);
-        return;
-      }
-      if (typeof from === 'object' && from.name) {
-        navigation.navigate(from.name, from.params);
-        return;
-      }
-    }
-    if (navigation.canGoBack && navigation.canGoBack()) {
+    if (navigation.canGoBack()) {
       navigation.goBack();
-    } else {
-      navigation.navigate('Home');
+      return;
     }
+
+    // Volver a la pestaña correspondiente
+    if (route.params?.from === 'Shop') {
+      navigation.navigate('ShopStack', {
+        screen: 'Shop'
+      });
+      return;
+    }
+    navigation.navigate('Home');
   };
+
 
   if (!product) return <View style={styles.container}><Text>Producto no encontrado</Text></View>;
 

@@ -14,12 +14,23 @@ export default function SignUpScreen() {
     const [lastName, setLastName] = useState('');
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
+
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const toast = useToast();
     const isFocused = useIsFocused();
 
     const API_BASE = 'https://bionutrexmobile.duckdns.org';
+
+    /* 🔥 Limpia todos los campos del formulario */
+    const resetForm = () => {
+        setUsername('');
+        setName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setPassword2('');
+    };
 
     const handleSignUp = async () => {
         if (!email || !password || !name) {
@@ -33,19 +44,22 @@ export default function SignUpScreen() {
 
         try {
             const body = {
-                username: username,
-                email: email,
+                username,
+                email,
                 first_name: name,
                 last_name: lastName,
                 password,
                 password2,
             };
+
             const res = await fetch(`${API_BASE}/api/auth/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
             });
+
             const json = await res.json();
+
             if (res.ok) {
                 // Auto-login: request token
                 const tokenRes = await fetch(`${API_BASE}/api/token/`, {
@@ -53,16 +67,26 @@ export default function SignUpScreen() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: email, password }),
                 });
+
                 const tokenJson = await tokenRes.json();
+
                 if (tokenRes.ok) {
                     const tokens = { access: tokenJson.access, refresh: tokenJson.refresh };
                     await AsyncStorage.setItem('authTokens', JSON.stringify(tokens));
                     dispatch(setAuth({ user: { name, email }, tokens }));
+
                     toast.show({ type: 'success', icon: 'checkmark-circle', message: 'Registro correcto, has iniciado sesión' });
-                    navigation.goBack();
+
+                    /* 🔥 1. Limpia formulario */
+                    resetForm();
+
+                    /* 🔥 2. Navega a Profile */
+                    navigation.navigate('Profile');
                 } else {
                     toast.show({ type: 'success', icon: 'checkmark-circle', message: 'Usuario creado. Puedes iniciar sesión.' });
-                    navigation.goBack();
+
+                    resetForm();
+                    navigation.navigate('Profile');
                 }
             } else {
                 const msg = json?.email || json?.detail || JSON.stringify(json);
@@ -79,9 +103,8 @@ export default function SignUpScreen() {
             if (parent && typeof parent.setOptions === 'function') {
                 parent.setOptions({ tabBarStyle: isFocused ? { display: 'flex' } : undefined });
             }
-        } catch (e) {
-            // ignore
-        }
+        } catch (e) { }
+
         return () => {
             if (parent && typeof parent.setOptions === 'function') {
                 parent.setOptions({ tabBarStyle: undefined });
@@ -92,14 +115,21 @@ export default function SignUpScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Crear cuenta</Text>
+
             <TextInput placeholder="Nombre de Usuario" value={username} onChangeText={setUsername} style={styles.input} placeholderTextColor={colors.gray} />
             <TextInput placeholder="Nombre" value={name} onChangeText={setName} style={styles.input} placeholderTextColor={colors.gray} />
             <TextInput placeholder="Apellido(s)" value={lastName} onChangeText={setLastName} style={styles.input} placeholderTextColor={colors.gray} />
             <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} placeholderTextColor={colors.gray} keyboardType="email-address" autoCapitalize="none" />
             <TextInput placeholder="Contraseña" value={password} onChangeText={setPassword} style={styles.input} placeholderTextColor={colors.gray} secureTextEntry />
             <TextInput placeholder="Repite contraseña" value={password2} onChangeText={setPassword2} style={styles.input} placeholderTextColor={colors.gray} secureTextEntry />
-            <TouchableOpacity style={styles.btnPrimary} onPress={handleSignUp}><Text style={styles.btnText}>Registrarme</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Profile')}><Text style={styles.linkText}>Volver</Text></TouchableOpacity>
+
+            <TouchableOpacity style={styles.btnPrimary} onPress={handleSignUp}>
+                <Text style={styles.btnText}>Registrarme</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Profile')}>
+                <Text style={styles.linkText}>Volver</Text>
+            </TouchableOpacity>
         </View>
     );
 }
